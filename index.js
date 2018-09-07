@@ -4368,15 +4368,7 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Main$Hawaii = {$: 'Hawaii'};
-var author$project$Main$initialModel = {correctAnswers: 0, seconds: 0, selectedIsland: author$project$Main$Hawaii, wrongAnswers: 0};
-var author$project$Main$Kahoolawe = {$: 'Kahoolawe'};
-var author$project$Main$Kauai = {$: 'Kauai'};
-var author$project$Main$Lanai = {$: 'Lanai'};
-var author$project$Main$Maui = {$: 'Maui'};
-var author$project$Main$Molokai = {$: 'Molokai'};
-var author$project$Main$Niihau = {$: 'Niihau'};
-var author$project$Main$Oahu = {$: 'Oahu'};
+var author$project$Main$initialModel = {correctAnswers: 0, seconds: 0, selectedIsland: 'Hawaii', wrongAnswers: 0};
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
@@ -4458,16 +4450,7 @@ var elm$core$Set$toList = function (_n0) {
 	return elm$core$Dict$keys(dict);
 };
 var author$project$Main$islands = _List_fromArray(
-	[
-		_Utils_Tuple2(author$project$Main$Hawaii, 'Hawaii'),
-		_Utils_Tuple2(author$project$Main$Kahoolawe, 'Kahoolawe'),
-		_Utils_Tuple2(author$project$Main$Kauai, 'Kauai'),
-		_Utils_Tuple2(author$project$Main$Lanai, 'Lanai'),
-		_Utils_Tuple2(author$project$Main$Maui, 'Maui'),
-		_Utils_Tuple2(author$project$Main$Molokai, 'Molokai'),
-		_Utils_Tuple2(author$project$Main$Niihau, 'Niihau'),
-		_Utils_Tuple2(author$project$Main$Oahu, 'Oahu')
-	]);
+	['Hawaii', 'Kahoolawe', 'Kauai', 'Lanai', 'Maui', 'Molokai', 'Niihau', 'Oahu']);
 var author$project$Main$RandomizeIsland = function (a) {
 	return {$: 'RandomizeIsland', a: a};
 };
@@ -5124,11 +5107,10 @@ var author$project$Main$update = F2(
 						index,
 						elm$core$Array$fromList(author$project$Main$islands));
 					if (_n1.$ === 'Just') {
-						var _n2 = _n1.a;
-						var island = _n2.a;
+						var island = _n1.a;
 						return island;
 					} else {
-						return author$project$Main$Hawaii;
+						return 'Hawaii';
 					}
 				}();
 				return _Utils_Tuple2(
@@ -5163,6 +5145,7 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var elm$html$Html$button = _VirtualDom_node('button');
+var elm$html$Html$li = _VirtualDom_node('li');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -5182,43 +5165,26 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var author$project$Main$viewButton = function (_n0) {
-	var island = _n0.a;
-	var islandString = _n0.b;
+var author$project$Main$viewButton = function (island) {
 	return A2(
-		elm$html$Html$button,
-		_List_fromArray(
-			[
-				elm$html$Html$Events$onClick(
-				author$project$Main$ChooseIsland(island))
-			]),
-		_List_fromArray(
-			[
-				elm$html$Html$text(islandString)
-			]));
-};
-var elm$html$Html$div = _VirtualDom_node('div');
-var author$project$Main$viewIslands = function (island) {
-	return A2(
-		elm$html$Html$div,
+		elm$html$Html$li,
 		_List_Nil,
 		_List_fromArray(
 			[
-				elm$html$Html$text('whatever this is supposed to be')
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(
+						author$project$Main$ChooseIsland(island))
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text(island)
+					]))
 			]));
 };
-var author$project$Main$viewScoreboard = function (_n0) {
-	var correctAnswers = _n0.correctAnswers;
-	var seconds = _n0.seconds;
-	var wrongAnswers = _n0.wrongAnswers;
-	return A2(
-		elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				elm$html$Html$text('some scoreboard with a button and onClick for StartTimer')
-			]));
-};
+var elm$core$Basics$neq = _Utils_notEqual;
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -5288,6 +5254,22 @@ var elm$core$List$map = F2(
 			_List_Nil,
 			xs);
 	});
+var elm$html$Html$ul = _VirtualDom_node('ul');
+var elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var elm$core$Tuple$second = function (_n0) {
+	var y = _n0.b;
+	return y;
+};
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5297,13 +5279,143 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var elm$html$Html$Attributes$classList = function (classes) {
+	return elm$html$Html$Attributes$class(
+		A2(
+			elm$core$String$join,
+			' ',
+			A2(
+				elm$core$List$map,
+				elm$core$Tuple$first,
+				A2(elm$core$List$filter, elm$core$Tuple$second, classes))));
+};
+var author$project$Main$viewButtonList = function (seconds) {
+	return A2(
+		elm$html$Html$ul,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$classList(
+				_List_fromArray(
+					[
+						_Utils_Tuple2('hide', seconds)
+					]))
+			]),
+		A2(elm$core$List$map, author$project$Main$viewButton, author$project$Main$islands));
+};
+var elm$core$String$toLower = _String_toLower;
+var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$img = _VirtualDom_node('img');
+var elm$html$Html$Attributes$alt = elm$html$Html$Attributes$stringProperty('alt');
+var elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var author$project$Main$viewIsland = F2(
+	function (selectedIsland, island) {
+		var lowercaseIsland = elm$core$String$toLower(island);
+		return A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$classList(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(lowercaseIsland, true),
+							_Utils_Tuple2(
+							'border',
+							_Utils_eq(island, selectedIsland))
+						]))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$img,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$alt(island),
+							elm$html$Html$Attributes$src('./img/' + (lowercaseIsland + '.svg'))
+						]),
+					_List_Nil)
+				]));
+	});
+var author$project$Main$StartTimer = {$: 'StartTimer'};
+var elm$html$Html$h3 = _VirtualDom_node('h3');
+var elm$html$Html$p = _VirtualDom_node('p');
+var author$project$Main$viewScoreboard = function (_n0) {
+	var correctAnswers = _n0.correctAnswers;
+	var seconds = _n0.seconds;
+	var wrongAnswers = _n0.wrongAnswers;
+	var welcomeOrScoreboard = (!((correctAnswers + wrongAnswers) + seconds)) ? A2(
+		elm$html$Html$h3,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text('Welcome to Pick An Island!')
+			])) : A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text(
+						'Correct: ' + elm$core$String$fromInt(correctAnswers))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text(
+						'Wrong: ' + elm$core$String$fromInt(wrongAnswers))
+					]))
+			]));
+	var buttonOrSeconds = (!seconds) ? A2(
+		elm$html$Html$button,
+		_List_fromArray(
+			[
+				elm$html$Html$Events$onClick(author$project$Main$StartTimer)
+			]),
+		_List_fromArray(
+			[
+				elm$html$Html$text('Start/Reset')
+			])) : A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text(
+				elm$core$String$fromInt(seconds) + ' seconds')
+			]));
+	return A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				welcomeOrScoreboard,
+				buttonOrSeconds,
+				A2(
+				elm$html$Html$p,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('When the timer starts, click the name that corresponds to the island with a red border.')
+					]))
+			]));
+};
 var author$project$Main$view = function (model) {
+	var seconds = model.seconds;
 	var selectedIsland = model.selectedIsland;
 	return A2(
 		elm$html$Html$div,
 		_List_fromArray(
 			[
-				elm$html$Html$Attributes$class('App')
+				elm$html$Html$Attributes$class('app')
 			]),
 		_List_fromArray(
 			[
@@ -5313,10 +5425,10 @@ var author$project$Main$view = function (model) {
 					[
 						elm$html$Html$Attributes$class('ocean')
 					]),
-				_List_fromArray(
-					[
-						author$project$Main$viewIslands(selectedIsland)
-					])),
+				A2(
+					elm$core$List$map,
+					author$project$Main$viewIsland(selectedIsland),
+					author$project$Main$islands)),
 				A2(
 				elm$html$Html$div,
 				_List_fromArray(
@@ -5325,12 +5437,9 @@ var author$project$Main$view = function (model) {
 					]),
 				_List_fromArray(
 					[
-						author$project$Main$viewScoreboard(model)
-					])),
-				A2(
-				elm$html$Html$div,
-				_List_Nil,
-				A2(elm$core$List$map, author$project$Main$viewButton, author$project$Main$islands))
+						author$project$Main$viewScoreboard(model),
+						author$project$Main$viewButtonList(seconds)
+					]))
 			]));
 };
 var elm$browser$Browser$External = function (a) {

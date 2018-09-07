@@ -19,15 +19,8 @@ import Random
 -- MODEL
 
 
-type Island
-    = Hawaii
-    | Kahoolawe
-    | Kauai
-    | Lanai
-    | Maui
-    | Molokai
-    | Niihau
-    | Oahu
+type alias Island =
+    String
 
 
 type alias Model =
@@ -38,20 +31,16 @@ type alias Model =
     }
 
 
-
--- move islands closer to view
-
-
-islands : List ( Island, String )
+islands : List Island
 islands =
-    [ ( Hawaii, "Hawaii" )
-    , ( Kahoolawe, "Kahoolawe" )
-    , ( Kauai, "Kauai" )
-    , ( Lanai, "Lanai" )
-    , ( Maui, "Maui" )
-    , ( Molokai, "Molokai" )
-    , ( Niihau, "Niihau" )
-    , ( Oahu, "Oahu" )
+    [ "Hawaii"
+    , "Kahoolawe"
+    , "Kauai"
+    , "Lanai"
+    , "Maui"
+    , "Molokai"
+    , "Niihau"
+    , "Oahu"
     ]
 
 
@@ -59,7 +48,7 @@ initialModel : Model
 initialModel =
     { correctAnswers = 0
     , seconds = 0
-    , selectedIsland = Hawaii -- will need to be random every time
+    , selectedIsland = "Hawaii" -- will need to be random every time
     , wrongAnswers = 0
     }
 
@@ -96,11 +85,11 @@ update msg model =
                             |> Array.fromList
                             |> Array.get index
                     of
-                        Just ( island, _ ) ->
+                        Just island ->
                             island
 
                         Nothing ->
-                            Hawaii
+                            "Hawaii"
             in
             ( { model | selectedIsland = selectedIsland }, Cmd.none )
 
@@ -125,14 +114,31 @@ randomizeIsland =
 -- VIEW
 
 
-viewIslands : Island -> Html Msg
-viewIslands island =
-    div [] [ text "whatever this is supposed to be" ]
-
-
 viewScoreboard : Model -> Html Msg
 viewScoreboard { correctAnswers, seconds, wrongAnswers } =
-    div [] [ text "some scoreboard with a button and onClick for StartTimer" ]
+    let
+        welcomeOrScoreboard =
+            if correctAnswers + wrongAnswers + seconds == 0 then
+                h3 [] [ text "Welcome to Pick An Island!" ]
+
+            else
+                div []
+                    [ div [] [ text <| "Correct: " ++ String.fromInt correctAnswers ]
+                    , div [] [ text <| "Wrong: " ++ String.fromInt wrongAnswers ]
+                    ]
+
+        buttonOrSeconds =
+            if seconds == 0 then
+                button [ onClick StartTimer ] [ text "Start/Reset" ]
+
+            else
+                div [] [ text <| String.fromInt seconds ++ " seconds" ]
+    in
+    div []
+        [ welcomeOrScoreboard
+        , buttonOrSeconds
+        , p [] [ text "When the timer starts, click the name that corresponds to the island with a red border." ]
+        ]
 
 
 
@@ -144,28 +150,42 @@ viewScoreboard { correctAnswers, seconds, wrongAnswers } =
 --     "http://localhost:8001/" ++ ""
 
 
-viewButton : ( Island, String ) -> Html Msg
-viewButton ( island, islandString ) =
-    button [ onClick <| ChooseIsland island ] [ text islandString ]
+viewButton : Island -> Html Msg
+viewButton island =
+    li []
+        [ button [ onClick <| ChooseIsland island ] [ text island ]
+        ]
 
 
-viewIsland : Island -> ( Island, String ) -> Html Msg
-viewIsland selectedIsland ( island, islandString ) =
+viewButtonList : Int -> Html Msg
+viewButtonList seconds =
+    ul [ classList [ ( "hide", seconds /= 0 ) ] ] (List.map viewButton islands)
+
+
+viewIsland : Island -> Island -> Html Msg
+viewIsland selectedIsland island =
+    let
+        lowercaseIsland =
+            String.toLower island
+    in
     div
         [ classList
-            [ ( String.toLower islandString, True )
+            [ ( lowercaseIsland, True )
             , ( "border", island == selectedIsland )
             ]
         ]
-        [ img [ alt islandString, src "" ] [] ]
+        [ img [ alt island, src ("./img/" ++ lowercaseIsland ++ ".svg") ] [] ]
 
 
 view : Model -> Html Msg
-view ({ selectedIsland } as model) =
-    div [ class "App" ]
-        [ div [ class "ocean" ] [ viewIslands selectedIsland ]
-        , div [ class "dashboard" ] [ viewScoreboard model ]
-        , div [] (List.map viewButton islands)
+view ({ seconds, selectedIsland } as model) =
+    div [ class "app" ]
+        -- [ div [ class "ocean" ] [ viewIslands selectedIsland ]
+        [ div [ class "ocean" ] (List.map (viewIsland selectedIsland) islands)
+        , div [ class "dashboard" ]
+            [ viewScoreboard model
+            , viewButtonList seconds
+            ]
         ]
 
 
