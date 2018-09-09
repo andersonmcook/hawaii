@@ -34,7 +34,7 @@ yarn start
 
 To develop:
 ```sh
-elm-live src/Main.elm --open --output index.js
+elm-live src/Main.elm --open -- --output=index.js
 ```
 
 To run the optimizer:
