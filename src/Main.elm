@@ -107,10 +107,18 @@ update msg model =
             ( { model | selectedIsland = selectedIsland }, Cmd.none )
 
         Play ->
-            -- could use initialModel in here instead of model
-            -- like in example app
-            -- will want to run a command that updates `seconds` every second
-            ( { model | gameState = Playing, seconds = 30 }, tickSecond 30 )
+            let
+                seconds =
+                    30
+            in
+            ( { model
+                | correctAnswers = 0
+                , gameState = Playing
+                , seconds = seconds
+                , wrongAnswers = 0
+              }
+            , tickSecond seconds
+            )
 
         Tick 0 ->
             ( { model | gameState = PostGame, seconds = 0 }, Cmd.none )
