@@ -4368,10 +4368,11 @@ function _Browser_load(url)
 		}
 	}));
 }
+var author$project$Main$Island = F2(
+	function (id, name) {
+		return {id: id, name: name};
+	});
 var author$project$Main$PreGame = {$: 'PreGame'};
-var author$project$Main$initialModel = {correctAnswers: 0, gameState: author$project$Main$PreGame, seconds: 0, selectedIsland: 'Hawaii', wrongAnswers: 0};
-var author$project$Main$Playing = {$: 'Playing'};
-var author$project$Main$PostGame = {$: 'PostGame'};
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
@@ -4452,8 +4453,26 @@ var elm$core$Set$toList = function (_n0) {
 	var dict = _n0.a;
 	return elm$core$Dict$keys(dict);
 };
-var author$project$Main$islands = _List_fromArray(
-	['Hawaii', 'Kahoolawe', 'Kauai', 'Lanai', 'Maui', 'Molokai', 'Niihau', 'Oahu']);
+var author$project$Main$initialModel = {
+	correctAnswers: 0,
+	gameState: author$project$Main$PreGame,
+	islands: _List_fromArray(
+		[
+			A2(author$project$Main$Island, 1, 'HAWAII'),
+			A2(author$project$Main$Island, 2, 'KAHOOLAWE'),
+			A2(author$project$Main$Island, 3, 'KAUAI'),
+			A2(author$project$Main$Island, 4, 'LANAI'),
+			A2(author$project$Main$Island, 5, 'MAUI'),
+			A2(author$project$Main$Island, 6, 'MOLOKAI'),
+			A2(author$project$Main$Island, 7, 'NIIHAU'),
+			A2(author$project$Main$Island, 8, 'OAHU')
+		]),
+	seconds: 0,
+	selectedIsland: A2(author$project$Main$Island, 1, 'HAWAII'),
+	wrongAnswers: 0
+};
+var author$project$Main$Playing = {$: 'Playing'};
+var author$project$Main$PostGame = {$: 'PostGame'};
 var author$project$Main$RandomizeIsland = function (a) {
 	return {$: 'RandomizeIsland', a: a};
 };
@@ -5007,13 +5026,15 @@ var elm$random$Random$int = F2(
 				}
 			});
 	});
-var author$project$Main$randomizeIsland = A2(
-	elm$random$Random$generate,
-	author$project$Main$RandomizeIsland,
-	A2(
-		elm$random$Random$int,
-		0,
-		elm$core$List$length(author$project$Main$islands) - 1));
+var author$project$Main$randomizeIsland = function (islands) {
+	return A2(
+		elm$random$Random$generate,
+		author$project$Main$RandomizeIsland,
+		A2(
+			elm$random$Random$int,
+			0,
+			elm$core$List$length(islands) - 1));
+};
 var author$project$Main$Tick = function (a) {
 	return {$: 'Tick', a: a};
 };
@@ -5261,19 +5282,21 @@ var author$project$Main$update = F2(
 					{correctAnswers: model.correctAnswers + 1}) : _Utils_update(
 					model,
 					{wrongAnswers: model.wrongAnswers + 1});
-				return _Utils_Tuple2(updatedModel, author$project$Main$randomizeIsland);
+				return _Utils_Tuple2(
+					updatedModel,
+					author$project$Main$randomizeIsland(model.islands));
 			case 'RandomizeIsland':
 				var index = msg.a;
 				var selectedIsland = function () {
 					var _n1 = A2(
 						elm$core$Array$get,
 						index,
-						elm$core$Array$fromList(author$project$Main$islands));
+						elm$core$Array$fromList(model.islands));
 					if (_n1.$ === 'Just') {
 						var island = _n1.a;
 						return island;
 					} else {
-						return 'Hawaii';
+						return A2(author$project$Main$Island, 1, 'HAWAII');
 					}
 				}();
 				return _Utils_Tuple2(
@@ -5358,7 +5381,7 @@ var author$project$Main$viewButton = function (island) {
 					]),
 				_List_fromArray(
 					[
-						elm$html$Html$text(island)
+						elm$html$Html$text(island.name)
 					]))
 			]));
 };
@@ -5398,7 +5421,9 @@ var elm$html$Html$Attributes$classList = function (classes) {
 				elm$core$Tuple$first,
 				A2(elm$core$List$filter, elm$core$Tuple$second, classes))));
 };
-var author$project$Main$viewButtonList = function (gameState) {
+var author$project$Main$viewButtonList = function (_n0) {
+	var gameState = _n0.gameState;
+	var islands = _n0.islands;
 	return A2(
 		elm$html$Html$ul,
 		_List_fromArray(
@@ -5411,7 +5436,7 @@ var author$project$Main$viewButtonList = function (gameState) {
 						!_Utils_eq(gameState, author$project$Main$Playing))
 					]))
 			]),
-		A2(elm$core$List$map, author$project$Main$viewButton, author$project$Main$islands));
+		A2(elm$core$List$map, author$project$Main$viewButton, islands));
 };
 var elm$core$String$toLower = _String_toLower;
 var elm$html$Html$div = _VirtualDom_node('div');
@@ -5425,7 +5450,7 @@ var elm$html$Html$Attributes$src = function (url) {
 };
 var author$project$Main$viewIsland = F2(
 	function (selectedIsland, island) {
-		var lowercaseIsland = elm$core$String$toLower(island);
+		var lowercaseIsland = elm$core$String$toLower(island.name);
 		return A2(
 			elm$html$Html$div,
 			_List_fromArray(
@@ -5445,7 +5470,7 @@ var author$project$Main$viewIsland = F2(
 					elm$html$Html$img,
 					_List_fromArray(
 						[
-							elm$html$Html$Attributes$alt(island),
+							elm$html$Html$Attributes$alt(island.name),
 							elm$html$Html$Attributes$src('./img/' + (lowercaseIsland + '.svg'))
 						]),
 					_List_Nil)
@@ -5522,6 +5547,7 @@ var author$project$Main$viewScoreboard = function (model) {
 };
 var author$project$Main$view = function (model) {
 	var gameState = model.gameState;
+	var islands = model.islands;
 	var selectedIsland = model.selectedIsland;
 	return A2(
 		elm$html$Html$div,
@@ -5540,7 +5566,7 @@ var author$project$Main$view = function (model) {
 				A2(
 					elm$core$List$map,
 					author$project$Main$viewIsland(selectedIsland),
-					author$project$Main$islands)),
+					islands)),
 				A2(
 				elm$html$Html$div,
 				_List_fromArray(
@@ -5550,7 +5576,7 @@ var author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						author$project$Main$viewScoreboard(model),
-						author$project$Main$viewButtonList(gameState)
+						author$project$Main$viewButtonList(model)
 					]))
 			]));
 };

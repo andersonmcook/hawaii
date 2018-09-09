@@ -22,12 +22,15 @@ import Task
 
 
 type alias Island =
-    String
+    { id : Int
+    , name : String
+    }
 
 
 type alias Model =
     { correctAnswers : Int
     , gameState : GameState
+    , islands : List Island
     , seconds : Int
     , selectedIsland : Island
     , wrongAnswers : Int
@@ -40,25 +43,24 @@ type GameState
     | PreGame
 
 
-islands : List Island
-islands =
-    [ "Hawaii"
-    , "Kahoolawe"
-    , "Kauai"
-    , "Lanai"
-    , "Maui"
-    , "Molokai"
-    , "Niihau"
-    , "Oahu"
-    ]
-
-
 initialModel : Model
 initialModel =
     { correctAnswers = 0
     , gameState = PreGame
+
+    -- temp
+    , islands =
+        [ Island 1 "HAWAII"
+        , Island 2 "KAHOOLAWE"
+        , Island 3 "KAUAI"
+        , Island 4 "LANAI"
+        , Island 5 "MAUI"
+        , Island 6 "MOLOKAI"
+        , Island 7 "NIIHAU"
+        , Island 8 "OAHU"
+        ]
     , seconds = 0
-    , selectedIsland = "Hawaii" -- will need to be random every time
+    , selectedIsland = Island 1 "HAWAII" -- will need to be random every time
     , wrongAnswers = 0
     }
 
@@ -86,13 +88,13 @@ update msg model =
                     else
                         { model | wrongAnswers = model.wrongAnswers + 1 }
             in
-            ( updatedModel, randomizeIsland )
+            ( updatedModel, randomizeIsland model.islands )
 
         RandomizeIsland index ->
             let
                 selectedIsland =
                     case
-                        islands
+                        model.islands
                             |> Array.fromList
                             |> Array.get index
                     of
@@ -100,7 +102,7 @@ update msg model =
                             island
 
                         Nothing ->
-                            "Hawaii"
+                            Island 1 "HAWAII"
             in
             ( { model | selectedIsland = selectedIsland }, Cmd.none )
 
@@ -121,8 +123,8 @@ update msg model =
 -- COMMANDS
 
 
-randomizeIsland : Cmd Msg
-randomizeIsland =
+randomizeIsland : List Island -> Cmd Msg
+randomizeIsland islands =
     Random.generate RandomizeIsland (Random.int 0 (List.length islands - 1))
 
 
@@ -169,12 +171,12 @@ viewScoreboard ({ correctAnswers, gameState, seconds, wrongAnswers } as model) =
 viewButton : Island -> Html Msg
 viewButton island =
     li []
-        [ button [ onClick <| ChooseIsland island ] [ text island ]
+        [ button [ onClick <| ChooseIsland island ] [ text <| .name <| island ]
         ]
 
 
-viewButtonList : GameState -> Html Msg
-viewButtonList gameState =
+viewButtonList : Model -> Html Msg
+viewButtonList { gameState, islands } =
     ul [ classList [ ( "hide", gameState /= Playing ) ] ] (List.map viewButton islands)
 
 
@@ -182,7 +184,7 @@ viewIsland : Island -> Island -> Html Msg
 viewIsland selectedIsland island =
     let
         lowercaseIsland =
-            String.toLower island
+            String.toLower island.name
     in
     div
         [ classList
@@ -190,16 +192,16 @@ viewIsland selectedIsland island =
             , ( "border", island == selectedIsland )
             ]
         ]
-        [ img [ alt island, src ("./img/" ++ lowercaseIsland ++ ".svg") ] [] ]
+        [ img [ alt island.name, src ("./img/" ++ lowercaseIsland ++ ".svg") ] [] ]
 
 
 view : Model -> Html Msg
-view ({ gameState, selectedIsland } as model) =
+view ({ gameState, islands, selectedIsland } as model) =
     div [ class "app" ]
         [ div [ class "ocean" ] (List.map (viewIsland selectedIsland) islands)
         , div [ class "dashboard" ]
             [ viewScoreboard model
-            , viewButtonList gameState
+            , viewButtonList model
             ]
         ]
 
