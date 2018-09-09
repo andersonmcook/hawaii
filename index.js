@@ -779,66 +779,6 @@ var _List_sortWith = F2(function(f, xs)
 
 
 
-// MATH
-
-var _Basics_add = F2(function(a, b) { return a + b; });
-var _Basics_sub = F2(function(a, b) { return a - b; });
-var _Basics_mul = F2(function(a, b) { return a * b; });
-var _Basics_fdiv = F2(function(a, b) { return a / b; });
-var _Basics_idiv = F2(function(a, b) { return (a / b) | 0; });
-var _Basics_pow = F2(Math.pow);
-
-var _Basics_remainderBy = F2(function(b, a) { return a % b; });
-
-// https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf
-var _Basics_modBy = F2(function(modulus, x)
-{
-	var answer = x % modulus;
-	return modulus === 0
-		? _Debug_crash(11)
-		:
-	((answer > 0 && modulus < 0) || (answer < 0 && modulus > 0))
-		? answer + modulus
-		: answer;
-});
-
-
-// TRIGONOMETRY
-
-var _Basics_pi = Math.PI;
-var _Basics_e = Math.E;
-var _Basics_cos = Math.cos;
-var _Basics_sin = Math.sin;
-var _Basics_tan = Math.tan;
-var _Basics_acos = Math.acos;
-var _Basics_asin = Math.asin;
-var _Basics_atan = Math.atan;
-var _Basics_atan2 = F2(Math.atan2);
-
-
-// MORE MATH
-
-function _Basics_toFloat(x) { return x; }
-function _Basics_truncate(n) { return n | 0; }
-function _Basics_isInfinite(n) { return n === Infinity || n === -Infinity; }
-
-var _Basics_ceiling = Math.ceil;
-var _Basics_floor = Math.floor;
-var _Basics_round = Math.round;
-var _Basics_sqrt = Math.sqrt;
-var _Basics_log = Math.log;
-var _Basics_isNaN = isNaN;
-
-
-// BOOLEANS
-
-function _Basics_not(bool) { return !bool; }
-var _Basics_and = F2(function(a, b) { return a && b; });
-var _Basics_or  = F2(function(a, b) { return a || b; });
-var _Basics_xor = F2(function(a, b) { return a !== b; });
-
-
-
 // TASKS
 
 function _Scheduler_succeed(value)
@@ -1027,6 +967,66 @@ function _Scheduler_step(proc)
 		}
 	}
 }
+
+
+
+// MATH
+
+var _Basics_add = F2(function(a, b) { return a + b; });
+var _Basics_sub = F2(function(a, b) { return a - b; });
+var _Basics_mul = F2(function(a, b) { return a * b; });
+var _Basics_fdiv = F2(function(a, b) { return a / b; });
+var _Basics_idiv = F2(function(a, b) { return (a / b) | 0; });
+var _Basics_pow = F2(Math.pow);
+
+var _Basics_remainderBy = F2(function(b, a) { return a % b; });
+
+// https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf
+var _Basics_modBy = F2(function(modulus, x)
+{
+	var answer = x % modulus;
+	return modulus === 0
+		? _Debug_crash(11)
+		:
+	((answer > 0 && modulus < 0) || (answer < 0 && modulus > 0))
+		? answer + modulus
+		: answer;
+});
+
+
+// TRIGONOMETRY
+
+var _Basics_pi = Math.PI;
+var _Basics_e = Math.E;
+var _Basics_cos = Math.cos;
+var _Basics_sin = Math.sin;
+var _Basics_tan = Math.tan;
+var _Basics_acos = Math.acos;
+var _Basics_asin = Math.asin;
+var _Basics_atan = Math.atan;
+var _Basics_atan2 = F2(Math.atan2);
+
+
+// MORE MATH
+
+function _Basics_toFloat(x) { return x; }
+function _Basics_truncate(n) { return n | 0; }
+function _Basics_isInfinite(n) { return n === Infinity || n === -Infinity; }
+
+var _Basics_ceiling = Math.ceil;
+var _Basics_floor = Math.floor;
+var _Basics_round = Math.round;
+var _Basics_sqrt = Math.sqrt;
+var _Basics_log = Math.log;
+var _Basics_isNaN = isNaN;
+
+
+// BOOLEANS
+
+function _Basics_not(bool) { return !bool; }
+var _Basics_and = F2(function(a, b) { return a && b; });
+var _Basics_or  = F2(function(a, b) { return a || b; });
+var _Basics_xor = F2(function(a, b) { return a !== b; });
 
 
 
@@ -4476,37 +4476,6 @@ var author$project$Main$PostGame = {$: 'PostGame'};
 var author$project$Main$RandomizeIsland = function (a) {
 	return {$: 'RandomizeIsland', a: a};
 };
-var elm$core$Basics$sub = _Basics_sub;
-var elm$core$Basics$add = _Basics_add;
-var elm$core$List$foldl = F3(
-	function (func, acc, list) {
-		foldl:
-		while (true) {
-			if (!list.b) {
-				return acc;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				var $temp$func = func,
-					$temp$acc = A2(func, x, acc),
-					$temp$list = xs;
-				func = $temp$func;
-				acc = $temp$acc;
-				list = $temp$list;
-				continue foldl;
-			}
-		}
-	});
-var elm$core$List$length = function (xs) {
-	return A3(
-		elm$core$List$foldl,
-		F2(
-			function (_n0, i) {
-				return i + 1;
-			}),
-		0,
-		xs);
-};
 var elm$core$Basics$identity = function (x) {
 	return x;
 };
@@ -4515,6 +4484,7 @@ var elm$random$Random$Generate = function (a) {
 };
 var elm$core$Task$andThen = _Scheduler_andThen;
 var elm$core$Task$succeed = _Scheduler_succeed;
+var elm$core$Basics$add = _Basics_add;
 var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var elm$random$Random$Seed = F2(
 	function (a, b) {
@@ -4595,6 +4565,25 @@ var elm$core$Array$SubTree = function (a) {
 	return {$: 'SubTree', a: a};
 };
 var elm$core$Elm$JsArray$initializeFromList = _JsArray_initializeFromList;
+var elm$core$List$foldl = F3(
+	function (func, acc, list) {
+		foldl:
+		while (true) {
+			if (!list.b) {
+				return acc;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				var $temp$func = func,
+					$temp$acc = A2(func, x, acc),
+					$temp$list = xs;
+				func = $temp$func;
+				acc = $temp$acc;
+				list = $temp$list;
+				continue foldl;
+			}
+		}
+	});
 var elm$core$List$reverse = function (list) {
 	return A3(elm$core$List$foldl, elm$core$List$cons, _List_Nil, list);
 };
@@ -4655,6 +4644,7 @@ var elm$core$Basics$max = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) > 0) ? x : y;
 	});
+var elm$core$Basics$sub = _Basics_sub;
 var elm$core$Elm$JsArray$length = _JsArray_length;
 var elm$core$Array$builderToArray = F2(
 	function (reverseNodeList, builder) {
@@ -4767,6 +4757,16 @@ var elm$core$Char$isDigit = function (_char) {
 };
 var elm$core$Char$isAlphaNum = function (_char) {
 	return elm$core$Char$isLower(_char) || (elm$core$Char$isUpper(_char) || elm$core$Char$isDigit(_char));
+};
+var elm$core$List$length = function (xs) {
+	return A3(
+		elm$core$List$foldl,
+		F2(
+			function (_n0, i) {
+				return i + 1;
+			}),
+		0,
+		xs);
 };
 var elm$core$List$map2 = _List_map2;
 var elm$core$List$rangeHelp = F3(
@@ -5026,14 +5026,11 @@ var elm$random$Random$int = F2(
 				}
 			});
 	});
-var author$project$Main$randomizeIsland = function (islands) {
+var author$project$Main$randomizeIsland = function (lastIndex) {
 	return A2(
 		elm$random$Random$generate,
 		author$project$Main$RandomizeIsland,
-		A2(
-			elm$random$Random$int,
-			0,
-			elm$core$List$length(islands) - 1));
+		A2(elm$random$Random$int, 0, lastIndex));
 };
 var author$project$Main$Tick = function (a) {
 	return {$: 'Tick', a: a};
@@ -5282,9 +5279,10 @@ var author$project$Main$update = F2(
 					{correctAnswers: model.correctAnswers + 1}) : _Utils_update(
 					model,
 					{wrongAnswers: model.wrongAnswers + 1});
+				var lastIndex = elm$core$List$length(model.islands) - 1;
 				return _Utils_Tuple2(
 					updatedModel,
-					author$project$Main$randomizeIsland(model.islands));
+					author$project$Main$randomizeIsland(lastIndex));
 			case 'RandomizeIsland':
 				var index = msg.a;
 				var selectedIsland = function () {
@@ -5304,12 +5302,13 @@ var author$project$Main$update = F2(
 						model,
 						{selectedIsland: selectedIsland}),
 					elm$core$Platform$Cmd$none);
-			case 'Play':
+			case 'StartGame':
+				var seconds = 30;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{gameState: author$project$Main$Playing, seconds: 30}),
-					author$project$Main$tickSecond(30));
+						{correctAnswers: 0, gameState: author$project$Main$Playing, seconds: seconds, wrongAnswers: 0}),
+					author$project$Main$tickSecond(seconds));
 			default:
 				if (!msg.a) {
 					return _Utils_Tuple2(
@@ -5476,7 +5475,7 @@ var author$project$Main$viewIsland = F2(
 					_List_Nil)
 				]));
 	});
-var author$project$Main$Play = {$: 'Play'};
+var author$project$Main$StartGame = {$: 'StartGame'};
 var elm$html$Html$h3 = _VirtualDom_node('h3');
 var elm$html$Html$p = _VirtualDom_node('p');
 var author$project$Main$viewScoreboard = function (model) {
@@ -5516,7 +5515,7 @@ var author$project$Main$viewScoreboard = function (model) {
 		elm$html$Html$button,
 		_List_fromArray(
 			[
-				elm$html$Html$Events$onClick(author$project$Main$Play)
+				elm$html$Html$Events$onClick(author$project$Main$StartGame)
 			]),
 		_List_fromArray(
 			[

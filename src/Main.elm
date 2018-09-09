@@ -72,7 +72,7 @@ initialModel =
 type Msg
     = ChooseIsland Island
     | RandomizeIsland Int
-    | Play
+    | StartGame
     | Tick Int
 
 
@@ -87,8 +87,11 @@ update msg model =
 
                     else
                         { model | wrongAnswers = model.wrongAnswers + 1 }
+
+                lastIndex =
+                    List.length model.islands - 1
             in
-            ( updatedModel, randomizeIsland model.islands )
+            ( updatedModel, randomizeIsland lastIndex )
 
         RandomizeIsland index ->
             let
@@ -106,7 +109,7 @@ update msg model =
             in
             ( { model | selectedIsland = selectedIsland }, Cmd.none )
 
-        Play ->
+        StartGame ->
             let
                 seconds =
                     30
@@ -131,9 +134,9 @@ update msg model =
 -- COMMANDS
 
 
-randomizeIsland : List Island -> Cmd Msg
-randomizeIsland islands =
-    Random.generate RandomizeIsland (Random.int 0 (List.length islands - 1))
+randomizeIsland : Int -> Cmd Msg
+randomizeIsland max =
+    Random.generate RandomizeIsland (Random.int 0 max)
 
 
 tickSecond : Int -> Cmd Msg
@@ -164,7 +167,7 @@ viewScoreboard ({ correctAnswers, gameState, seconds, wrongAnswers } as model) =
 
         buttonOrSeconds =
             if gameState /= Playing then
-                button [ onClick Play ] [ text "Start/Reset" ]
+                button [ onClick StartGame ] [ text "Start/Reset" ]
 
             else
                 div [] [ text <| String.fromInt seconds ++ " seconds" ]
