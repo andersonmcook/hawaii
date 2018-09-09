@@ -7,6 +7,8 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Http
+import Json.Decode as Decode exposing (Decoder, field, succeed)
 import Process
 import Random
 import Task
@@ -47,19 +49,10 @@ initialModel : Model
 initialModel =
     { correctAnswers = 0
     , gameState = PreGame
-
-    -- temp
-    , islands =
-        [ Island 1 "HAWAII"
-        , Island 2 "KAHOOLAWE"
-        , Island 3 "KAUAI"
-        , Island 4 "LANAI"
-        , Island 5 "MAUI"
-        , Island 6 "MOLOKAI"
-        , Island 7 "NIIHAU"
-        , Island 8 "OAHU"
-        ]
+    , islands = []
     , seconds = 0
+
+    -- Nothing ? in the future ?
     , selectedIsland = Island 1 "HAWAII" -- will need to be random every time
     , wrongAnswers = 0
     }
@@ -71,6 +64,7 @@ initialModel =
 
 type Msg
     = ChooseIsland Island
+    | LoadIslands (Result Http.Error (List Island))
     | RandomizeIsland Int
     | StartGame
     | Tick Int
@@ -92,6 +86,13 @@ update msg model =
                     List.length model.islands - 1
             in
             ( updatedModel, randomizeIsland lastIndex )
+
+        LoadIslands (Ok islands) ->
+            ( { model | islands = islands }, Cmd.none )
+
+        LoadIslands (Err error) ->
+            -- we would display an error here
+            ( model, Cmd.none )
 
         RandomizeIsland index ->
             let
@@ -134,6 +135,19 @@ update msg model =
 -- COMMANDS
 
 
+islandsUrl : String
+islandsUrl =
+    "http://localhost:3000/islands"
+
+
+getIslands : Cmd Msg
+getIslands =
+    islandDecoder
+        |> Decode.list
+        |> Http.get islandsUrl
+        |> Http.send LoadIslands
+
+
 randomizeIsland : Int -> Cmd Msg
 randomizeIsland max =
     Random.generate RandomizeIsland (Random.int 0 max)
@@ -148,6 +162,16 @@ tickSecond seconds =
 
 
 -- DECODERS / ENCODERS
+
+
+islandDecoder : Decoder Island
+islandDecoder =
+    Decode.map2 Island
+        (field "id" Decode.int)
+        (field "name" Decode.string)
+
+
+
 -- VIEW
 -- refactor this
 
@@ -224,7 +248,7 @@ view ({ gameState, islands, selectedIsland } as model) =
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always ( initialModel, Cmd.none )
+        { init = always ( initialModel, getIslands )
         , subscriptions = always Sub.none
         , update = update
         , view = view
