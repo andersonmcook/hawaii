@@ -15,12 +15,13 @@ import Task
 
 
 
--- import Http
--- import Json.Decode as Decode exposing (Decoder, field, oneOf, succeed)
--- import Json.Decode.Pipeline exposing (hardcoded, optional, required)
--- import Json.Encode as Encode
--- INIT
 -- MODEL
+
+
+type GameState
+    = Playing
+    | PostGame
+    | PreGame
 
 
 type alias Island =
@@ -33,16 +34,11 @@ type alias Model =
     { correctAnswers : Int
     , gameState : GameState
     , islands : List Island
+    , lastIndex : Int
     , seconds : Int
     , selectedIsland : Island
     , wrongAnswers : Int
     }
-
-
-type GameState
-    = Playing
-    | PostGame
-    | PreGame
 
 
 initialModel : Model
@@ -50,10 +46,9 @@ initialModel =
     { correctAnswers = 0
     , gameState = PreGame
     , islands = []
+    , lastIndex = 0
     , seconds = 0
-
-    -- Nothing ? in the future ?
-    , selectedIsland = Island 1 "HAWAII" -- will need to be random every time
+    , selectedIsland = Island 1 "HAWAII"
     , wrongAnswers = 0
     }
 
@@ -81,14 +76,20 @@ update msg model =
 
                     else
                         { model | wrongAnswers = model.wrongAnswers + 1 }
-
-                lastIndex =
-                    List.length model.islands - 1
             in
-            ( updatedModel, randomizeIsland lastIndex )
+            ( updatedModel, randomizeIsland model.lastIndex )
 
         LoadIslands (Ok islands) ->
-            ( { model | islands = islands }, Cmd.none )
+            let
+                lastIndex =
+                    List.length islands - 1
+            in
+            ( { model
+                | islands = islands
+                , lastIndex = lastIndex
+              }
+            , randomizeIsland lastIndex
+            )
 
         LoadIslands (Err error) ->
             -- we would display an error here
@@ -135,16 +136,11 @@ update msg model =
 -- COMMANDS
 
 
-islandsUrl : String
-islandsUrl =
-    "http://localhost:3000/islands"
-
-
 getIslands : Cmd Msg
 getIslands =
     islandDecoder
         |> Decode.list
-        |> Http.get islandsUrl
+        |> Http.get "http://localhost:3000/islands"
         |> Http.send LoadIslands
 
 
@@ -173,7 +169,6 @@ islandDecoder =
 
 
 -- VIEW
--- refactor this
 
 
 viewScoreboard : Model -> Html Msg
@@ -227,7 +222,12 @@ viewIsland selectedIsland island =
             , ( "border", island == selectedIsland )
             ]
         ]
-        [ img [ alt island.name, src ("./img/" ++ lowercaseIsland ++ ".svg") ] [] ]
+        [ img
+            [ alt island.name
+            , src ("./img/" ++ lowercaseIsland ++ ".svg")
+            ]
+            []
+        ]
 
 
 view : Model -> Html Msg

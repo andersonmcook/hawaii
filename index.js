@@ -5041,7 +5041,6 @@ var author$project$Main$islandDecoder = A3(
 	author$project$Main$Island,
 	A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$int),
 	A2(elm$json$Json$Decode$field, 'name', elm$json$Json$Decode$string));
-var author$project$Main$islandsUrl = 'http://localhost:3000/islands';
 var elm$http$Http$Internal$EmptyBody = {$: 'EmptyBody'};
 var elm$http$Http$emptyBody = elm$http$Http$Internal$EmptyBody;
 var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
@@ -5818,13 +5817,14 @@ var author$project$Main$getIslands = A2(
 	author$project$Main$LoadIslands,
 	A2(
 		elm$http$Http$get,
-		author$project$Main$islandsUrl,
+		'http://localhost:3000/islands',
 		elm$json$Json$Decode$list(author$project$Main$islandDecoder)));
 var author$project$Main$PreGame = {$: 'PreGame'};
 var author$project$Main$initialModel = {
 	correctAnswers: 0,
 	gameState: author$project$Main$PreGame,
 	islands: _List_Nil,
+	lastIndex: 0,
 	seconds: 0,
 	selectedIsland: A2(author$project$Main$Island, 1, 'HAWAII'),
 	wrongAnswers: 0
@@ -6097,18 +6097,18 @@ var author$project$Main$update = F2(
 					{correctAnswers: model.correctAnswers + 1}) : _Utils_update(
 					model,
 					{wrongAnswers: model.wrongAnswers + 1});
-				var lastIndex = elm$core$List$length(model.islands) - 1;
 				return _Utils_Tuple2(
 					updatedModel,
-					author$project$Main$randomizeIsland(lastIndex));
+					author$project$Main$randomizeIsland(model.lastIndex));
 			case 'LoadIslands':
 				if (msg.a.$ === 'Ok') {
 					var islands = msg.a.a;
+					var lastIndex = elm$core$List$length(islands) - 1;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{islands: islands}),
-						elm$core$Platform$Cmd$none);
+							{islands: islands, lastIndex: lastIndex}),
+						author$project$Main$randomizeIsland(lastIndex));
 				} else {
 					var error = msg.a.a;
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
