@@ -7,7 +7,9 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Process
 import Random
+import Task
 
 
 
@@ -25,10 +27,17 @@ type alias Island =
 
 type alias Model =
     { correctAnswers : Int
+    , gameState : GameState
     , seconds : Int
     , selectedIsland : Island
     , wrongAnswers : Int
     }
+
+
+type GameState
+    = Playing
+    | PostGame
+    | PreGame
 
 
 islands : List Island
@@ -47,6 +56,7 @@ islands =
 initialModel : Model
 initialModel =
     { correctAnswers = 0
+    , gameState = PreGame
     , seconds = 0
     , selectedIsland = "Hawaii" -- will need to be random every time
     , wrongAnswers = 0
@@ -60,7 +70,8 @@ initialModel =
 type Msg
     = ChooseIsland Island
     | RandomizeIsland Int
-    | StartTimer
+    | Play
+    | Tick Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -93,11 +104,17 @@ update msg model =
             in
             ( { model | selectedIsland = selectedIsland }, Cmd.none )
 
-        StartTimer ->
+        Play ->
             -- could use initialModel in here instead of model
             -- like in example app
             -- will want to run a command that updates `seconds` every second
-            ( { model | seconds = 30 }, Cmd.none )
+            ( { model | gameState = Playing, seconds = 30 }, tickSecond 30 )
+
+        Tick 0 ->
+            ( { model | gameState = PostGame, seconds = 0 }, Cmd.none )
+
+        Tick seconds ->
+            ( { model | seconds = seconds }, tickSecond seconds )
 
 
 
@@ -109,16 +126,24 @@ randomizeIsland =
     Random.generate RandomizeIsland (Random.int 0 (List.length islands - 1))
 
 
+tickSecond : Int -> Cmd Msg
+tickSecond seconds =
+    Process.sleep 1000
+        |> Task.andThen (\_ -> Task.succeed (seconds - 1))
+        |> Task.perform Tick
+
+
 
 -- DECODERS / ENCODERS
 -- VIEW
+-- refactor this
 
 
 viewScoreboard : Model -> Html Msg
-viewScoreboard { correctAnswers, seconds, wrongAnswers } =
+viewScoreboard ({ correctAnswers, gameState, seconds, wrongAnswers } as model) =
     let
         welcomeOrScoreboard =
-            if correctAnswers + wrongAnswers + seconds == 0 then
+            if gameState == PreGame then
                 h3 [] [ text "Welcome to Pick An Island!" ]
 
             else
@@ -128,8 +153,8 @@ viewScoreboard { correctAnswers, seconds, wrongAnswers } =
                     ]
 
         buttonOrSeconds =
-            if seconds == 0 then
-                button [ onClick StartTimer ] [ text "Start/Reset" ]
+            if gameState /= Playing then
+                button [ onClick Play ] [ text "Start/Reset" ]
 
             else
                 div [] [ text <| String.fromInt seconds ++ " seconds" ]
@@ -141,15 +166,6 @@ viewScoreboard { correctAnswers, seconds, wrongAnswers } =
         ]
 
 
-
--- viewButton
--- viewIsland is temp
--- have to load the svg from public/static file
--- islandSvg : String -> String
--- islandSvg island =
---     "http://localhost:8001/" ++ ""
-
-
 viewButton : Island -> Html Msg
 viewButton island =
     li []
@@ -157,9 +173,9 @@ viewButton island =
         ]
 
 
-viewButtonList : Int -> Html Msg
-viewButtonList seconds =
-    ul [ classList [ ( "hide", seconds /= 0 ) ] ] (List.map viewButton islands)
+viewButtonList : GameState -> Html Msg
+viewButtonList gameState =
+    ul [ classList [ ( "hide", gameState /= Playing ) ] ] (List.map viewButton islands)
 
 
 viewIsland : Island -> Island -> Html Msg
@@ -178,13 +194,12 @@ viewIsland selectedIsland island =
 
 
 view : Model -> Html Msg
-view ({ seconds, selectedIsland } as model) =
+view ({ gameState, selectedIsland } as model) =
     div [ class "app" ]
-        -- [ div [ class "ocean" ] [ viewIslands selectedIsland ]
         [ div [ class "ocean" ] (List.map (viewIsland selectedIsland) islands)
         , div [ class "dashboard" ]
             [ viewScoreboard model
-            , viewButtonList seconds
+            , viewButtonList gameState
             ]
         ]
 

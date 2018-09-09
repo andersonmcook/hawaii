@@ -4368,7 +4368,10 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Main$initialModel = {correctAnswers: 0, seconds: 0, selectedIsland: 'Hawaii', wrongAnswers: 0};
+var author$project$Main$PreGame = {$: 'PreGame'};
+var author$project$Main$initialModel = {correctAnswers: 0, gameState: author$project$Main$PreGame, seconds: 0, selectedIsland: 'Hawaii', wrongAnswers: 0};
+var author$project$Main$Playing = {$: 'Playing'};
+var author$project$Main$PostGame = {$: 'PostGame'};
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
@@ -5011,6 +5014,166 @@ var author$project$Main$randomizeIsland = A2(
 		elm$random$Random$int,
 		0,
 		elm$core$List$length(author$project$Main$islands) - 1));
+var author$project$Main$Tick = function (a) {
+	return {$: 'Tick', a: a};
+};
+var elm$core$Process$sleep = _Process_sleep;
+var elm$core$Task$Perform = function (a) {
+	return {$: 'Perform', a: a};
+};
+var elm$core$Task$init = elm$core$Task$succeed(_Utils_Tuple0);
+var elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							elm$core$List$foldl,
+							fn,
+							acc,
+							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
+var elm$core$Task$map = F2(
+	function (func, taskA) {
+		return A2(
+			elm$core$Task$andThen,
+			function (a) {
+				return elm$core$Task$succeed(
+					func(a));
+			},
+			taskA);
+	});
+var elm$core$Task$map2 = F3(
+	function (func, taskA, taskB) {
+		return A2(
+			elm$core$Task$andThen,
+			function (a) {
+				return A2(
+					elm$core$Task$andThen,
+					function (b) {
+						return elm$core$Task$succeed(
+							A2(func, a, b));
+					},
+					taskB);
+			},
+			taskA);
+	});
+var elm$core$Task$sequence = function (tasks) {
+	return A3(
+		elm$core$List$foldr,
+		elm$core$Task$map2(elm$core$List$cons),
+		elm$core$Task$succeed(_List_Nil),
+		tasks);
+};
+var elm$core$Task$spawnCmd = F2(
+	function (router, _n0) {
+		var task = _n0.a;
+		return _Scheduler_spawn(
+			A2(
+				elm$core$Task$andThen,
+				elm$core$Platform$sendToApp(router),
+				task));
+	});
+var elm$core$Task$onEffects = F3(
+	function (router, commands, state) {
+		return A2(
+			elm$core$Task$map,
+			function (_n0) {
+				return _Utils_Tuple0;
+			},
+			elm$core$Task$sequence(
+				A2(
+					elm$core$List$map,
+					elm$core$Task$spawnCmd(router),
+					commands)));
+	});
+var elm$core$Task$onSelfMsg = F3(
+	function (_n0, _n1, _n2) {
+		return elm$core$Task$succeed(_Utils_Tuple0);
+	});
+var elm$core$Task$cmdMap = F2(
+	function (tagger, _n0) {
+		var task = _n0.a;
+		return elm$core$Task$Perform(
+			A2(elm$core$Task$map, tagger, task));
+	});
+_Platform_effectManagers['Task'] = _Platform_createManager(elm$core$Task$init, elm$core$Task$onEffects, elm$core$Task$onSelfMsg, elm$core$Task$cmdMap);
+var elm$core$Task$command = _Platform_leaf('Task');
+var elm$core$Task$perform = F2(
+	function (toMessage, task) {
+		return elm$core$Task$command(
+			elm$core$Task$Perform(
+				A2(elm$core$Task$map, toMessage, task)));
+	});
+var author$project$Main$tickSecond = function (seconds) {
+	return A2(
+		elm$core$Task$perform,
+		author$project$Main$Tick,
+		A2(
+			elm$core$Task$andThen,
+			function (_n0) {
+				return elm$core$Task$succeed(seconds - 1);
+			},
+			elm$core$Process$sleep(1000)));
+};
 var elm$core$Array$fromListHelp = F3(
 	function (list, nodeList, nodeListSize) {
 		fromListHelp:
@@ -5118,12 +5281,27 @@ var author$project$Main$update = F2(
 						model,
 						{selectedIsland: selectedIsland}),
 					elm$core$Platform$Cmd$none);
-			default:
+			case 'Play':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{seconds: 30}),
-					elm$core$Platform$Cmd$none);
+						{gameState: author$project$Main$Playing, seconds: 30}),
+					author$project$Main$tickSecond(30));
+			default:
+				if (!msg.a) {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{gameState: author$project$Main$PostGame, seconds: 0}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					var seconds = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{seconds: seconds}),
+						author$project$Main$tickSecond(seconds));
+				}
 		}
 	});
 var author$project$Main$ChooseIsland = function (a) {
@@ -5185,75 +5363,6 @@ var author$project$Main$viewButton = function (island) {
 			]));
 };
 var elm$core$Basics$neq = _Utils_notEqual;
-var elm$core$List$foldrHelper = F4(
-	function (fn, acc, ctr, ls) {
-		if (!ls.b) {
-			return acc;
-		} else {
-			var a = ls.a;
-			var r1 = ls.b;
-			if (!r1.b) {
-				return A2(fn, a, acc);
-			} else {
-				var b = r1.a;
-				var r2 = r1.b;
-				if (!r2.b) {
-					return A2(
-						fn,
-						a,
-						A2(fn, b, acc));
-				} else {
-					var c = r2.a;
-					var r3 = r2.b;
-					if (!r3.b) {
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(fn, c, acc)));
-					} else {
-						var d = r3.a;
-						var r4 = r3.b;
-						var res = (ctr > 500) ? A3(
-							elm$core$List$foldl,
-							fn,
-							acc,
-							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(
-									fn,
-									c,
-									A2(fn, d, res))));
-					}
-				}
-			}
-		}
-	});
-var elm$core$List$foldr = F3(
-	function (fn, acc, ls) {
-		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
-	});
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
 var elm$html$Html$ul = _VirtualDom_node('ul');
 var elm$core$List$filter = F2(
 	function (isGood, list) {
@@ -5289,7 +5398,7 @@ var elm$html$Html$Attributes$classList = function (classes) {
 				elm$core$Tuple$first,
 				A2(elm$core$List$filter, elm$core$Tuple$second, classes))));
 };
-var author$project$Main$viewButtonList = function (seconds) {
+var author$project$Main$viewButtonList = function (gameState) {
 	return A2(
 		elm$html$Html$ul,
 		_List_fromArray(
@@ -5297,7 +5406,9 @@ var author$project$Main$viewButtonList = function (seconds) {
 				elm$html$Html$Attributes$classList(
 				_List_fromArray(
 					[
-						_Utils_Tuple2('hide', seconds)
+						_Utils_Tuple2(
+						'hide',
+						!_Utils_eq(gameState, author$project$Main$Playing))
 					]))
 			]),
 		A2(elm$core$List$map, author$project$Main$viewButton, author$project$Main$islands));
@@ -5340,14 +5451,15 @@ var author$project$Main$viewIsland = F2(
 					_List_Nil)
 				]));
 	});
-var author$project$Main$StartTimer = {$: 'StartTimer'};
+var author$project$Main$Play = {$: 'Play'};
 var elm$html$Html$h3 = _VirtualDom_node('h3');
 var elm$html$Html$p = _VirtualDom_node('p');
-var author$project$Main$viewScoreboard = function (_n0) {
-	var correctAnswers = _n0.correctAnswers;
-	var seconds = _n0.seconds;
-	var wrongAnswers = _n0.wrongAnswers;
-	var welcomeOrScoreboard = (!((correctAnswers + wrongAnswers) + seconds)) ? A2(
+var author$project$Main$viewScoreboard = function (model) {
+	var correctAnswers = model.correctAnswers;
+	var gameState = model.gameState;
+	var seconds = model.seconds;
+	var wrongAnswers = model.wrongAnswers;
+	var welcomeOrScoreboard = _Utils_eq(gameState, author$project$Main$PreGame) ? A2(
 		elm$html$Html$h3,
 		_List_Nil,
 		_List_fromArray(
@@ -5375,11 +5487,11 @@ var author$project$Main$viewScoreboard = function (_n0) {
 						'Wrong: ' + elm$core$String$fromInt(wrongAnswers))
 					]))
 			]));
-	var buttonOrSeconds = (!seconds) ? A2(
+	var buttonOrSeconds = (!_Utils_eq(gameState, author$project$Main$Playing)) ? A2(
 		elm$html$Html$button,
 		_List_fromArray(
 			[
-				elm$html$Html$Events$onClick(author$project$Main$StartTimer)
+				elm$html$Html$Events$onClick(author$project$Main$Play)
 			]),
 		_List_fromArray(
 			[
@@ -5409,7 +5521,7 @@ var author$project$Main$viewScoreboard = function (_n0) {
 			]));
 };
 var author$project$Main$view = function (model) {
-	var seconds = model.seconds;
+	var gameState = model.gameState;
 	var selectedIsland = model.selectedIsland;
 	return A2(
 		elm$html$Html$div,
@@ -5438,7 +5550,7 @@ var author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						author$project$Main$viewScoreboard(model),
-						author$project$Main$viewButtonList(seconds)
+						author$project$Main$viewButtonList(gameState)
 					]))
 			]));
 };
@@ -5460,82 +5572,6 @@ var elm$core$Basics$never = function (_n0) {
 		continue never;
 	}
 };
-var elm$core$Task$Perform = function (a) {
-	return {$: 'Perform', a: a};
-};
-var elm$core$Task$init = elm$core$Task$succeed(_Utils_Tuple0);
-var elm$core$Task$map = F2(
-	function (func, taskA) {
-		return A2(
-			elm$core$Task$andThen,
-			function (a) {
-				return elm$core$Task$succeed(
-					func(a));
-			},
-			taskA);
-	});
-var elm$core$Task$map2 = F3(
-	function (func, taskA, taskB) {
-		return A2(
-			elm$core$Task$andThen,
-			function (a) {
-				return A2(
-					elm$core$Task$andThen,
-					function (b) {
-						return elm$core$Task$succeed(
-							A2(func, a, b));
-					},
-					taskB);
-			},
-			taskA);
-	});
-var elm$core$Task$sequence = function (tasks) {
-	return A3(
-		elm$core$List$foldr,
-		elm$core$Task$map2(elm$core$List$cons),
-		elm$core$Task$succeed(_List_Nil),
-		tasks);
-};
-var elm$core$Task$spawnCmd = F2(
-	function (router, _n0) {
-		var task = _n0.a;
-		return _Scheduler_spawn(
-			A2(
-				elm$core$Task$andThen,
-				elm$core$Platform$sendToApp(router),
-				task));
-	});
-var elm$core$Task$onEffects = F3(
-	function (router, commands, state) {
-		return A2(
-			elm$core$Task$map,
-			function (_n0) {
-				return _Utils_Tuple0;
-			},
-			elm$core$Task$sequence(
-				A2(
-					elm$core$List$map,
-					elm$core$Task$spawnCmd(router),
-					commands)));
-	});
-var elm$core$Task$onSelfMsg = F3(
-	function (_n0, _n1, _n2) {
-		return elm$core$Task$succeed(_Utils_Tuple0);
-	});
-var elm$core$Task$cmdMap = F2(
-	function (tagger, _n0) {
-		var task = _n0.a;
-		return elm$core$Task$Perform(
-			A2(elm$core$Task$map, tagger, task));
-	});
-_Platform_effectManagers['Task'] = _Platform_createManager(elm$core$Task$init, elm$core$Task$onEffects, elm$core$Task$onSelfMsg, elm$core$Task$cmdMap);
-var elm$core$Task$command = _Platform_leaf('Task');
-var elm$core$Task$perform = F2(
-	function (toMessage, task) {
-		return elm$core$Task$command(
-			elm$core$Task$Perform(
-				A2(elm$core$Task$map, toMessage, task)));
-	});
 var elm$core$String$length = _String_length;
 var elm$core$String$slice = _String_slice;
 var elm$core$String$dropLeft = F2(
